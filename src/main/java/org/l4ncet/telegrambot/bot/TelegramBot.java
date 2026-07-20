@@ -2,6 +2,7 @@ package org.l4ncet.telegrambot.bot;
 
 import lombok.RequiredArgsConstructor;
 import org.l4ncet.telegrambot.bot.keyboard.MainMenuKeyboard;
+import org.l4ncet.telegrambot.service.RandomService;
 import org.l4ncet.telegrambot.service.TelegramMessageService;
 import org.l4ncet.telegrambot.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,15 +22,19 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
     private final UserService userService;
     private final String botToken;
     private final MainMenuKeyboard mainMenuKeyboard;
+    private final RandomService randomService;
 
     public TelegramBot(UserService userService,
                        @Value("${telegram.bot.token}") String botToken,
                        TelegramMessageService telegramMessageService,
-                       MainMenuKeyboard mainMenuKeyboard) {
+                       MainMenuKeyboard mainMenuKeyboard,
+                       RandomService randomService) {
+
         this.userService = userService;
         this.botToken = botToken;
         this.telegramMessageService = telegramMessageService;
         this.mainMenuKeyboard = mainMenuKeyboard;
+        this.randomService = randomService;
     }
 
     @Override
@@ -45,24 +50,44 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
     @Override
     public void consume(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
-            Long telegramId = update.getMessage().getFrom().getId();
-            String username = update.getMessage().getFrom().getUserName();
-            String firstName = update.getMessage().getFrom().getFirstName();
-            String text = update.getMessage().getText();
-            Long chatId = update.getMessage().getChatId();
+            handleMessage(update);
+        }
 
-            if (text.equals("/start")) {
-                userService.registerUser(
-                        telegramId,
-                        username,
-                        firstName
-                );
+        if (update.hasCallbackQuery()) {
+            handleCallbackQuery(update);
+        }
+    }
 
-                telegramMessageService.sendMessage(chatId,
-                        "Привет, " + firstName + "!\n\nВыбери действие",
-                        mainMenuKeyboard.create());
+    private void handleMessage(Update update) {
+        Long telegramId = update.getMessage().getFrom().getId();
+        String username = update.getMessage().getFrom().getUserName();
+        String firstName = update.getMessage().getFrom().getFirstName();
+        String text = update.getMessage().getText();
+        Long chatId = update.getMessage().getChatId();
 
-            }
+        if (text.equals("/start")) {
+            userService.registerUser(
+                    telegramId,
+                    username,
+                    firstName
+            );
+
+            telegramMessageService.sendMessage(chatId,
+                    "Привет, " + firstName + "!\n\nВыбери действие",
+                    mainMenuKeyboard.create());
+        }
+    }
+
+    private void handleCallbackQuery(Update update) {
+
+        String callbackData = update.getCallbackQuery().getData();
+
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+
+        if (callbackData.equals("GENERATE_RANDOM")) {
+            int randomNumber = randomService.generate();
+
+            telegramMessageService.sendMessage(chatId, "🎲 Твоё случайное число от 1 до 3: " + randomNumber);
         }
     }
 }
