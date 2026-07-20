@@ -2,6 +2,7 @@ package org.l4ncet.telegrambot.bot;
 
 import lombok.RequiredArgsConstructor;
 import org.l4ncet.telegrambot.bot.keyboard.MainMenuKeyboard;
+import org.l4ncet.telegrambot.bot.keyboard.MainReplyKeyboard;
 import org.l4ncet.telegrambot.service.RandomService;
 import org.l4ncet.telegrambot.service.TelegramMessageService;
 import org.l4ncet.telegrambot.service.UserService;
@@ -22,18 +23,21 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
     private final UserService userService;
     private final String botToken;
     private final MainMenuKeyboard mainMenuKeyboard;
+    private final MainReplyKeyboard mainReplyKeyboard;
     private final RandomService randomService;
 
     public TelegramBot(UserService userService,
                        @Value("${telegram.bot.token}") String botToken,
                        TelegramMessageService telegramMessageService,
                        MainMenuKeyboard mainMenuKeyboard,
-                       RandomService randomService) {
+                       RandomService randomService,
+                       MainReplyKeyboard mainReplyKeyboard) {
 
         this.userService = userService;
         this.botToken = botToken;
         this.telegramMessageService = telegramMessageService;
         this.mainMenuKeyboard = mainMenuKeyboard;
+        this.mainReplyKeyboard = mainReplyKeyboard;
         this.randomService = randomService;
     }
 
@@ -74,8 +78,36 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
 
             telegramMessageService.sendMessage(chatId,
                     "Привет, " + firstName + "!\n\nВыбери действие",
-                    mainMenuKeyboard.create());
+                    mainReplyKeyboard.create());
+            return;
         }
+
+        if (text.equals("🎲 Случайное число")) {
+
+            int randomNumber = randomService.generate();
+            telegramMessageService.sendMessage(chatId, "🎲 Твоё случайное число от 1 до 2: " + randomNumber);
+            return;
+        }
+
+        if (text.equals("👤 Профиль")) {
+
+            telegramMessageService.sendMessage(chatId, "Раздел профиля пока в разработке.");
+            return;
+        }
+
+        if (text.equals("📊 Статистика")) {
+
+            telegramMessageService.sendMessage(chatId, "Раздел статистики пока в разработке.");
+            return;
+        }
+
+        if (text.equals("⚙️ Настройки")) {
+
+            telegramMessageService.sendMessage(chatId, "Раздел настроек пока в разработке.");
+
+        }
+
+
     }
 
     private void handleCallbackQuery(Update update) {
@@ -87,7 +119,7 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
         if (callbackData.equals("GENERATE_RANDOM")) {
             int randomNumber = randomService.generate();
 
-            telegramMessageService.sendMessage(chatId, "🎲 Твоё случайное число от 1 до 3: " + randomNumber);
+            telegramMessageService.sendMessage(chatId, "🎲 Твоё случайное число от 1 до 2: " + randomNumber);
         }
     }
 }
