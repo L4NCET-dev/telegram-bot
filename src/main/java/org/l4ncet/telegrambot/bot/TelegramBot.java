@@ -1,6 +1,7 @@
 package org.l4ncet.telegrambot.bot;
 
 import lombok.RequiredArgsConstructor;
+import org.l4ncet.telegrambot.bot.keyboard.MainMenuKeyboard;
 import org.l4ncet.telegrambot.service.TelegramMessageService;
 import org.l4ncet.telegrambot.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,11 +20,16 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
     private final TelegramMessageService telegramMessageService;
     private final UserService userService;
     private final String botToken;
+    private final MainMenuKeyboard mainMenuKeyboard;
 
-    public TelegramBot(UserService userService, @Value("${telegram.bot.token}") String botToken, TelegramMessageService telegramMessageService) {
+    public TelegramBot(UserService userService,
+                       @Value("${telegram.bot.token}") String botToken,
+                       TelegramMessageService telegramMessageService,
+                       MainMenuKeyboard mainMenuKeyboard) {
         this.userService = userService;
         this.botToken = botToken;
         this.telegramMessageService = telegramMessageService;
+        this.mainMenuKeyboard = mainMenuKeyboard;
     }
 
     @Override
@@ -52,7 +58,9 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
                         firstName
                 );
 
-                telegramMessageService.sendMessage(chatId, "Привет, " + firstName + "!");
+                telegramMessageService.sendMessage(chatId,
+                        "Привет, " + firstName + "!\n\nВыбери действие",
+                        mainMenuKeyboard.create());
 
             }
         }
