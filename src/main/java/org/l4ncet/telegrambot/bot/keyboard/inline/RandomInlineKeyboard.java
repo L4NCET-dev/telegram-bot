@@ -1,4 +1,4 @@
-package org.l4ncet.telegrambot.bot.keyboard;
+package org.l4ncet.telegrambot.bot.keyboard.inline;
 
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -8,7 +8,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import java.util.List;
 
 @Component
-public class MainMenuKeyboard {
+public class RandomInlineKeyboard {
 
     public InlineKeyboardMarkup create(){
         InlineKeyboardButton randomButton = InlineKeyboardButton.builder()
