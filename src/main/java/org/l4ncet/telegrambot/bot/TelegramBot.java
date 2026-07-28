@@ -1,8 +1,9 @@
 package org.l4ncet.telegrambot.bot;
 
-import lombok.RequiredArgsConstructor;
 import org.l4ncet.telegrambot.bot.keyboard.MainMenuKeyboard;
 import org.l4ncet.telegrambot.bot.keyboard.MainReplyKeyboard;
+import org.l4ncet.telegrambot.dto.CreateUserRequestDto;
+import org.l4ncet.telegrambot.dto.UserResponseDto;
 import org.l4ncet.telegrambot.service.RandomService;
 import org.l4ncet.telegrambot.service.TelegramMessageService;
 import org.l4ncet.telegrambot.service.UserService;
@@ -10,11 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.longpolling.starter.SpringLongPollingBot;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.meta.generics.TelegramClient;
-import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 
 @Component
 public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
@@ -70,11 +67,8 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
         Long chatId = update.getMessage().getChatId();
 
         if (text.equals("/start")) {
-            userService.registerUser(
-                    telegramId,
-                    username,
-                    firstName
-            );
+            CreateUserRequestDto request = new CreateUserRequestDto(telegramId, username, firstName);
+            userService.createUser(request);
 
             telegramMessageService.sendMessage(chatId,
                     "Привет, " + firstName + "!\n\nВыбери действие",
@@ -91,7 +85,25 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
 
         if (text.equals("👤 Профиль")) {
 
-            telegramMessageService.sendMessage(chatId, "Раздел профиля пока в разработке.");
+            UserResponseDto user = userService.getUserByTelegramId(telegramId);
+
+            String profileText = """
+                    👤 Профиль
+                    
+                    ID: %d
+                    Telegram ID: %d
+                    Имя: %s
+                    Username: @%s
+                    Дата регистрации: %s
+                    """.formatted(
+                    user.getId(),
+                    user.getTelegramId(),
+                    user.getFirstName(),
+                    user.getUsername(),
+                    user.getCreatedAt()
+            );
+
+            telegramMessageService.sendMessage(chatId, profileText);
             return;
         }
 
