@@ -23,6 +23,9 @@ public class Order {
     private Long id;
 
     @Column(nullable = false, length = 100)
+    private String subject;
+
+    @Column(nullable = false, length = 100)
     private String title;
 
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -36,13 +39,19 @@ public class Order {
     @Column(nullable = false, length = 20)
     private OrderStatus status;
 
+    @Column(nullable = false)
+    private Long customerTelegramId; //Кто создал заказ
+
+    private Integer channelMessageId; //Id сообщения в канале
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
 
     @PrePersist
     private void prePersist(){
         if(status == null){
-            status = OrderStatus.DRAFT;
+            status = OrderStatus.ACTIVE;
         }
         if(createdAt == null){
             createdAt = LocalDateTime.now();
