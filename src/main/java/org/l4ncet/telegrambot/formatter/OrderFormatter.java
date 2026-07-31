@@ -21,9 +21,9 @@ public class OrderFormatter {
                 📅 Термін: %s
                 """.formatted(
                     formatStatus(order.getStatus()),
-                    order.getStatus(),
-                    order.getTitle(),
-                    order.getDescription(),
+                    escapeHtml(order.getSubject()),
+                    escapeHtml(order.getTitle()),
+                    escapeHtml(order.getDescription()),
                     formatPrice(order.getPrice()),
                     formatDeadline(order.getDeadline())
                 );
@@ -53,6 +53,16 @@ public class OrderFormatter {
             return "Не вказано";
         }
         return deadline.format(DATE_FORMAT);
+    }
+
+    private String escapeHtml(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;");
     }
 
 }
