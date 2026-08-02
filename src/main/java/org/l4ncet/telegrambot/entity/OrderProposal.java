@@ -66,6 +66,7 @@ public class OrderProposal {
         }
     }
 
+    @PreUpdate
     private void preUpdate() {
         updatedAt = LocalDateTime.now();
     }
