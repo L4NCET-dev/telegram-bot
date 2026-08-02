@@ -1,10 +1,7 @@
 package org.l4ncet.telegrambot.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -19,7 +16,8 @@ import java.time.LocalDateTime;
         )
     }
 )
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -40,9 +38,8 @@ public class OrderProposal {
     @Column(columnDefinition = "TEXT")
     private String message;
 
-    private Long proposedPrice;
-
-    private Long agreedPrice;
+    @Column(name = "agreed_price")
+    private Integer agreedPrice;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

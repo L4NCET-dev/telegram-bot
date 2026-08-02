@@ -31,7 +31,7 @@ public class Order {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    private Long price;
+    private Integer price;
 
     private LocalDate deadline;
 
@@ -46,7 +46,6 @@ public class Order {
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
 
     @PrePersist
     private void prePersist(){
