@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +39,7 @@ public class OrderPublicationService {
         Message publishedMessage =
                 telegramMessageService.sendHtmlMessage(channelId, publicationText, publicationKeyboard);
 
-        saveChannelMessageId(order,publishedMessage.getMessageId());
+        saveChannelMessageId(order, publishedMessage.getMessageId());
 
     }
 
@@ -57,12 +56,12 @@ public class OrderPublicationService {
 
         if (order.getChannelMessageId() != null) {
             throw new OrderPublicationException(
-                    "Замовлення с ID %d уже опублікован. channelMessageId: %d"
+                    "Замовлення с ID %d вже опубліковано. channelMessageId: %d"
                             .formatted(order.getId(), order.getChannelMessageId()));
         }
     }
 
-    private void saveChannelMessageId(Order order,Integer channelMessageId) {
+    private void saveChannelMessageId(Order order, Integer channelMessageId) {
         order.setChannelMessageId(channelMessageId);
         orderRepository.save(order);
     }
