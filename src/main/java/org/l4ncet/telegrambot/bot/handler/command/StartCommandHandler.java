@@ -29,16 +29,65 @@ public class StartCommandHandler implements CommandHandler {
         Long chatId = update.getMessage().getChatId();
         String text = update.getMessage().getText();
 
+        registerUser(telegramId, username, firstName);
+
+        if (text.equals(START_COMMAND)) {
+            sendMainMenu(chatId, firstName);
+            return;
+        }
+        handleStartPayload(text, telegramId, chatId);
+    }
+
+
+    @Override
+    public boolean supports(String command) {
+        return command.equals("/start") || command.startsWith(START_COMMAND + " ");
+    }
+
+    private void registerUser(Long telegramId, String username, String firstName) {
         CreateUserRequestDto request = new CreateUserRequestDto(telegramId, username, firstName);
         userService.createUser(request);
+    }
 
+    private void sendMainMenu(Long chatId, String firstName) {
         telegramMessageService.sendMessage(chatId,
                 "Привет, " + firstName + "!\n\nВыбери действие",
                 mainMenuReplyKeyboard.create());
     }
 
-    @Override
-    public boolean supports(String command) {
-        return command.equals("/start");
+    private void handleStartPayload(String text, Long telegramId, Long chatId) {
+
+        String payload = extractPayload(text);
+
+        if (!payload.startsWith(ORDER_PAYLOAD_PREFIX)) {
+            telegramMessageService.sendMessage(chatId, "Невідомий параметр запуску бота.");
+            return;
+        }
+        Long orderId = extractOrderId(payload);
+
+        if (orderId == null) {
+            telegramMessageService.sendMessage(chatId, "Посилання на замовлення має неправильний формат.");
+            return;
+        }
+        orderProposalStartService.start(orderId, telegramId, chatId);
+    }
+
+    private String extractPayload(String text) {
+        return text.substring(START_COMMAND.length()).trim();
+    }
+
+    private Long extractOrderId(String payload) {
+        String orderIdPart = payload.substring(ORDER_PAYLOAD_PREFIX.length());
+
+        if (orderIdPart.isBlank()) {
+            return null;
+        }
+
+        try {
+            return Long.parseLong(orderIdPart);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+
     }
 }
