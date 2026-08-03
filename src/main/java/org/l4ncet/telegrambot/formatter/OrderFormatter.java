@@ -41,7 +41,7 @@ public class OrderFormatter {
         };
     }
 
-    private String formatPrice(Long price) {
+    private String formatPrice(Integer price) {
         if (price == null) {
             return "Договірна";
         }
