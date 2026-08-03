@@ -11,7 +11,7 @@ public class OrderResponseDto {
     Long id;
     String title;
     String description;
-    Long price;
+    Integer price;
     LocalDate deadline;
     OrderStatus status;
     LocalDateTime createdAt;

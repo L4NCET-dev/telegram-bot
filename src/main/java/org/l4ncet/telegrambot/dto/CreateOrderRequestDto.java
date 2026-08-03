@@ -8,6 +8,6 @@ import java.time.LocalDate;
 public class CreateOrderRequestDto {
     String title;
     String description;
-    Long price;
+    Integer price;
     LocalDate deadline;
 }

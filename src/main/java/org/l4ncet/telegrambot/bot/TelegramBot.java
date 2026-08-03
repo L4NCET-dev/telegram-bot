@@ -1,6 +1,8 @@
 package org.l4ncet.telegrambot.bot;
 
+import org.l4ncet.telegrambot.bot.handler.callback.CallbackHandler;
 import org.l4ncet.telegrambot.bot.handler.command.*;
+import org.l4ncet.telegrambot.service.ProposalSessionService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.longpolling.starter.SpringLongPollingBot;
@@ -14,12 +16,21 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
 
     private final String botToken;
     private final List<CommandHandler> commandHandlers;
+    private final List<CallbackHandler> callbackHandlers;
+    private final ProposalSessionService proposalSessionService;
+    private final ProposalMessageHandler proposalMessageHandler;
 
     public TelegramBot(@Value("${telegram.bot.token}") String botToken,
-                       List<CommandHandler> commandHandlers
-                       ) {
+                       List<CommandHandler> commandHandlers,
+                       List<CallbackHandler> callbackHandlers,
+                       ProposalMessageHandler proposalMessageHandler,
+                       ProposalSessionService proposalSessionService) {
+
         this.botToken = botToken;
         this.commandHandlers = commandHandlers;
+        this.callbackHandlers = callbackHandlers;
+        this.proposalMessageHandler = proposalMessageHandler;
+        this.proposalSessionService = proposalSessionService;
     }
 
     @Override
@@ -38,30 +49,32 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
             handleMessage(update);
         }
 
-//        if (update.hasCallbackQuery()) {
-//            handleCallbackQuery(update);
-//        }
+        if (update.hasCallbackQuery()) {
+            handleCallbackQuery(update);
+        }
     }
 
     private void handleMessage(Update update) {
+        Long telegramId = update.getMessage().getFrom().getId();
         String text = update.getMessage().getText();
 
+        if(proposalSessionService.exists(telegramId) && !text.startsWith("/")){
+            proposalMessageHandler.handle(update);
+            return;
+        }
         commandHandlers.stream()
                 .filter(handler -> handler.supports(text))
                 .findFirst()
                 .ifPresent(handler -> handler.handle(update));
     }
 
-//    private void handleCallbackQuery(Update update) {
-//
-//        String callbackData = update.getCallbackQuery().getData();
-//
-//        Long chatId = update.getCallbackQuery().getMessage().getChatId();
-//
-//        if (callbackData.equals("GENERATE_RANDOM")) {
-//            int randomNumber = randomService.generate();
-//
-//            telegramMessageService.sendMessage(chatId, "🎲 Твоё случайное число от 1 до 2: " + randomNumber);
-//        }
-//    }
+    private void handleCallbackQuery(Update update) {
+
+        String callbackData = update.getCallbackQuery().getData();
+
+        callbackHandlers.stream()
+                .filter(handler -> handler.supports(callbackData))
+                .findFirst()
+                .ifPresent(handler -> handler.handle(update));
+    }
 }
